@@ -1,36 +1,8 @@
-# USB-Max
-
-## 介绍
-- USB485-Max是一款超级USB-485转换器 用于高效率数据同步
-
-## 特性
-- USB2.0接口通信速度高达480Mbps
-- RS485收发器的通信速度高达20Mbps
-- 协处理器实时处理数据
-
-
-```c
-typedef struct
-{
-    unsigned int cmd_position;
-    unsigned short cmd_velocity;
-    unsigned short cmd_acc_time; 
-}cmdObj;
-typedef struct
-{
-    unsigned int status_position;
-    unsigned short status_velocity;
-    unsigned short status_acc_time;
-}
-```
-
----
-
-## CH32V305GBU USB OTA 固件升级工具
+# CH32V305GBU USB OTA 固件升级工具
 
 这是一个用于通过 USB 接口对 CH32V305GBU 微控制器进行 OTA (In-Application Programming) 固件升级的 Python 跨平台工具。
 
-### 目录结构
+## 目录结构
 
 - `usb_ota_tool.py`: 核心升级脚本
 - `requirements.txt`: Python 依赖文件
@@ -39,13 +11,13 @@ typedef struct
 
 ---
 
-### 1. 环境准备
+## 1. 环境准备
 
 请确保您的电脑上已经安装了 **Python 3.6** 或更高版本。
 
-#### 安装依赖包
+### 安装依赖包
 
-在命令行（终端）中进入本工具所在目录（`CH32V305GBU_OTA_Tool`），执行以下命令安装依赖：
+在命令行（终端）中进入本工具所在目录，执行以下命令安装依赖：
 
 ```bash
 pip install -r requirements.txt
@@ -53,11 +25,11 @@ pip install -r requirements.txt
 
 ---
 
-### 2. 操作系统配置与驱动安装
+## 2. 操作系统配置与驱动安装
 
 根据您使用的操作系统，可能需要进行额外的配置才能通过 USB 访问设备。
 
-#### Windows 系统
+### Windows 系统
 
 在 Windows 下，`pyusb` 需要通过 `libusb` 来访问 USB 设备。当设备处于 **Bootloader 模式**（设备管理器中可能显示为未识别的设备或带有黄色感叹号），您需要使用 **Zadig** 工具为其安装 WinUSB 驱动。
 
@@ -68,7 +40,7 @@ pip install -r requirements.txt
 5. 点击 `Install Driver` 或 `Replace Driver` 按钮。
 6. 安装完成后，即可运行 Python 脚本进行烧录。
 
-#### Linux 系统
+### Linux 系统
 
 在 Linux 下，普通用户通常没有直接访问 USB 硬件的权限。您可以通过 `sudo` 运行脚本，或者配置 `udev` 规则以免去 `sudo`。
 
@@ -93,7 +65,7 @@ sudo udevadm trigger
 ```
 4. 重新插拔 USB 设备，现在您可以直接使用普通用户权限运行脚本了。
 
-#### macOS 系统
+### macOS 系统
 
 macOS 原生自带了 libusb 所需的部分支持。您通常可以直接运行本脚本。
 如果遇到找不到 `libusb` 后端的错误，可以通过 Homebrew 安装：
@@ -104,11 +76,11 @@ brew install libusb
 
 ---
 
-### 3. 使用方法
+## 3. 使用方法
 
 确保设备已经通过 USB 连接到电脑。
 
-#### 常用命令
+### 常用命令
 
 **1. 升级固件 (最常用)**
 ```bash
@@ -134,14 +106,14 @@ python usb_ota_tool.py -l
 python usb_ota_tool.py -f CH32V305GBU6.bin --no-verify
 ```
 
-#### 查看所有帮助
+### 查看所有帮助
 ```bash
 python usb_ota_tool.py -h
 ```
 
 ---
 
-### 4. 常见问题排查
+## 4. 常见问题排查
 
 - **[Errno 13] Access denied (insufficient permissions)**
   - Linux: 没有权限访问 USB。请使用 `sudo` 或配置 `udev` 规则。

@@ -9,21 +9,6 @@
 - 协处理器实时处理数据
 
 
-```c
-typedef struct
-{
-    unsigned int cmd_position;
-    unsigned short cmd_velocity;
-    unsigned short cmd_acc_time; 
-}cmdObj;
-typedef struct
-{
-    unsigned int status_position;
-    unsigned short status_velocity;
-    unsigned short status_acc_time;
-}
-```
-
 ---
 
 ## CH32V305GBU USB OTA 固件升级工具

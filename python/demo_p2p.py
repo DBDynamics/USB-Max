@@ -12,7 +12,7 @@ m.setStateInit()
 time.sleep(1)
 m.setStateRun()
 time.sleep(1)
-for loop in range(100):
+for loop in range(3):
     m.setTp([0] * 8)
     time.sleep(1)
     m.setTp([51200] * 8)

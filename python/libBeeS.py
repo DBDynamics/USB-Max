@@ -201,6 +201,38 @@ class BeeS:
         print(f"Setting global state to Run (6) at cmd_state index {cmd_state_index}")
         return self.ctrl.write_register(cmd_state_index, [6])
 
+    def setStateReady(self) -> bool:
+        """
+        Sets the global command state (cmd_state) to Ready (value 3).
+        """
+        cmd_state_index = 3
+        print(f"Setting global state to Ready (3) at cmd_state index {cmd_state_index}")
+        return self.ctrl.write_register(cmd_state_index, [3])
+
+    def setStateAutoId(self) -> bool:
+        """
+        Sets the global command state (cmd_state) to Auto ID (value 7).
+        """
+        cmd_state_index = 3
+        print(f"Setting global state to Auto ID (7) at cmd_state index {cmd_state_index}")
+        return self.ctrl.write_register(cmd_state_index, [7])
+
+    def setStateIdle(self) -> bool:
+        """
+        Sets the global command state (cmd_state) to Idle (value 8).
+        """
+        cmd_state_index = 3
+        print(f"Setting global state to Idle (8) at cmd_state index {cmd_state_index}")
+        return self.ctrl.write_register(cmd_state_index, [8])
+
+    def setStateManualID(self) -> bool:
+        """
+        Sets the global command state (cmd_state) to Manual ID (value 9).
+        """
+        cmd_state_index = 3
+        print(f"Setting global state to Manual ID (9) at cmd_state index {cmd_state_index}")
+        return self.ctrl.write_register(cmd_state_index, [9])
+
     def getState(self) -> int:
         """
         Gets the current global command state (cmd_state) (index 3).
@@ -211,6 +243,80 @@ class BeeS:
             return data[0]
         else:
             print("Error: Could not read cmd_state register.")
+            return None
+
+    def playSound(self, num: int) -> None:
+        """
+        Play a sound speaking the given number (useful for headless operation feedback).
+        Uses Windows SAPI or PowerShell to speak the number without blocking.
+        """
+        import threading
+        
+        def _speak():
+            try:
+                # Try using win32com (usually pre-installed or fast)
+                import win32com.client
+                speaker = win32com.client.Dispatch("SAPI.SpVoice")
+                speaker.Speak(str(num))
+            except ImportError:
+                # Fallback to powershell which is built-in on Windows
+                import subprocess
+                cmd = ['powershell', '-Command', f"Add-Type -AssemblyName System.Speech; (New-Object System.Speech.Synthesis.SpeechSynthesizer).Speak('{num}')"]
+                subprocess.run(cmd)
+                
+        # Run in a separate thread so it doesn't block the main loop
+        threading.Thread(target=_speak, daemon=True).start()
+
+    def getOnline(self) -> int:
+        """
+        Gets the raw value of the st_online register (index 0).
+        """
+        st_online_index = 0
+        data = self.ctrl.read_register(st_online_index, count=1)
+        if data:
+            return data[0]
+        else:
+            print("Error: Could not read st_online register.")
+            return 0
+
+    def setCurrentID(self, id_val: int) -> bool:
+        """
+        Sets the current ID (cmd_currentID) for auto ID allocation.
+        """
+        cmd_current_id_index = 4
+        print(f"Setting current ID to {id_val} at cmd_currentID index {cmd_current_id_index}")
+        return self.ctrl.write_register(cmd_current_id_index, [id_val])
+
+    def getCurrentID(self) -> int:
+        """
+        Gets the current ID (cmd_currentID) (index 4).
+        """
+        cmd_current_id_index = 4
+        data = self.ctrl.read_cmd_register(cmd_current_id_index, count=1)
+        if data:
+            return data[0]
+        else:
+            print("Error: Could not read cmd_currentID register.")
+            return None
+
+    def setTargetID(self, id_val: int) -> bool:
+        """
+        Sets the target ID (cmd_targetID) for auto ID allocation.
+        """
+        cmd_target_id_index = 5
+        print(f"Setting target ID to {id_val} at cmd_targetID index {cmd_target_id_index}")
+        return self.ctrl.write_register(cmd_target_id_index, [id_val])
+
+    def getTargetID(self) -> int:
+        """
+        Gets the target ID (cmd_targetID) (index 5).
+        """
+        cmd_target_id_index = 5
+        data = self.ctrl.read_cmd_register(cmd_target_id_index, count=1)
+        if data:
+            return data[0]
+        else:
+            print("Error: Could not read cmd_targetID register.")
             return None
 
     def scanDevices(self) -> list:
@@ -307,18 +413,25 @@ class BeeS:
         print(f"Setting Target Position for ID {node_id} to {position} at index {target_index}")
         return self.ctrl.write_register(target_index, [position])
 
-    def setTp(self, positions: list) -> bool:
+    def setTps(self, positions: list, start_id: int = 0) -> bool:
         """
-        Sets the target position for multiple nodes at once, starting from ID 0.
+        Sets the target positions for multiple node IDs continuously.
         The target positions are stored sequentially starting at cmd_tp0 (index 10).
         """
-        if not positions or len(positions) > 32:
-            print(f"Error: positions array must have between 1 and 32 elements. Got {len(positions)}.")
+        if start_id < 0 or start_id > 31:
+            print(f"Error: start_id {start_id} out of range (0-31).")
+            return False
+            
+        count = len(positions)
+        if count < 1 or (start_id + count) > 32:
+            print(f"Error: Invalid positions length {count} for start_id {start_id}.")
             return False
             
         base_tp_index = 10  # cmd_tp0
-        print(f"Setting {len(positions)} Target Positions starting at index {base_tp_index}")
-        return self.ctrl.write_register(base_tp_index, positions)
+        target_index = base_tp_index + start_id
+        
+        # print(f"Setting {count} Target Positions starting at index {target_index}")
+        return self.ctrl.write_register(target_index, positions)
 
     def getTargetPosition(self, node_id: int) -> int:
         """
@@ -357,3 +470,40 @@ class BeeS:
         else:
             print(f"Error: Could not read actual position for ID {node_id}")
             return None
+
+    def getAp(self, node_id: int) -> int:
+        """
+        Alias for getActualPosition.
+        Gets the actual position for a specific node ID.
+        The actual positions are stored in the ST buffer starting at st_ap0 (index 41).
+        """
+        return self.getActualPosition(node_id)
+
+    def getActualPositions(self, count: int = 16, start_id: int = 0) -> list:
+        """
+        Gets the actual positions for multiple node IDs continuously.
+        The actual positions are stored in the ST buffer starting at st_ap0 (index 41).
+        """
+        if start_id < 0 or start_id > 31:
+            print(f"Error: start_id {start_id} out of range (0-31).")
+            return []
+        if count < 1 or (start_id + count) > 32:
+            print(f"Error: Invalid count {count} for start_id {start_id}.")
+            return []
+            
+        base_ap_index = 41  # st_ap0
+        target_index = base_ap_index + start_id
+        
+        data = self.ctrl.read_register(target_index, count=count)
+        if data:
+            return data
+        else:
+            print(f"Error: Could not read actual positions from ID {start_id}")
+            return []
+
+    def getAps(self, count: int = 16, start_id: int = 0) -> list:
+        """
+        Alias for getActualPositions.
+        Gets the actual positions for multiple node IDs continuously.
+        """
+        return self.getActualPositions(count, start_id)

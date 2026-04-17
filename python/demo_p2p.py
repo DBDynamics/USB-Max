@@ -9,13 +9,13 @@ for axis in range(8):
     # m.setHomingLevel(axis, 0)
 time.sleep(1)
 m.setStateInit()
-time.sleep(1)
+time.sleep(2)
 m.setStateRun()
 time.sleep(1)
-for loop in range(3):
-    m.setTp([0] * 8)
+for loop in range(1):
+    m.setTps([0] * 8)
     time.sleep(1)
-    m.setTp([51200] * 8)
+    m.setTps([51200] * 8)
     time.sleep(1)
 
 # for axis in range(8):

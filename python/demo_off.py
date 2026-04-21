@@ -7,3 +7,4 @@ for axis in range(16):
     m.setPowerOff(axis)
 time.sleep(1)
 m.setStateInit()
+time.sleep(1)

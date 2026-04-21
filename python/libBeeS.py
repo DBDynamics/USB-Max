@@ -18,45 +18,31 @@ class BeeS:
         
     def setPowerOn(self, node_id: int) -> bool:
         """
-        Enables power on for a specific node ID by setting the corresponding bit in cmd_enable register.
+        Enables power on for a specific node ID by setting its control_word to 1.
         """
-        cmd_enable_index = 0  # The register index for cmd_enable
-        
-        # 1. Read the current cmd_enable value
-        current_data = self.ctrl.read_cmd_register(cmd_enable_index, count=1)
-        if not current_data:
-            print("Error: Could not read cmd_enable register for setPowerOn.")
+        if node_id < 0 or node_id > 31:
+            print(f"Error: node_id {node_id} out of range (0-31).")
             return False
             
-        current_val = current_data[0]
+        base_cw_index = 10  # cmd_control_word0
+        target_index = base_cw_index + node_id
         
-        # 2. Modify the value (set the specific bit)
-        new_val = current_val | (0x1 << node_id)
-        
-        # 3. Write back the new value
-        print(f"Setting Power On for ID {node_id} (cmd_enable: {current_val:08X} -> {new_val:08X})")
-        return self.ctrl.write_register(cmd_enable_index, [new_val])
+        print(f"Setting Power On for ID {node_id} (cmd_control_word at index {target_index} -> 1)")
+        return self.ctrl.write_register(target_index, [1])
 
     def setPowerOff(self, node_id: int) -> bool:
         """
-        Disables power on for a specific node ID by clearing the corresponding bit in cmd_enable register.
+        Disables power on for a specific node ID by setting its control_word to 0.
         """
-        cmd_enable_index = 0  # The register index for cmd_enable
-        
-        # 1. Read the current cmd_enable value
-        current_data = self.ctrl.read_cmd_register(cmd_enable_index, count=1)
-        if not current_data:
-            print("Error: Could not read cmd_enable register for setPowerOff.")
+        if node_id < 0 or node_id > 31:
+            print(f"Error: node_id {node_id} out of range (0-31).")
             return False
             
-        current_val = current_data[0]
+        base_cw_index = 10  # cmd_control_word0
+        target_index = base_cw_index + node_id
         
-        # 2. Modify the value (clear the specific bit using bitwise AND with NOT)
-        new_val = current_val & ~(0x1 << node_id)
-        
-        # 3. Write back the new value
-        print(f"Setting Power Off for ID {node_id} (cmd_enable: {current_val:08X} -> {new_val:08X})")
-        return self.ctrl.write_register(cmd_enable_index, [new_val])
+        print(f"Setting Power Off for ID {node_id} (cmd_control_word at index {target_index} -> 0)")
+        return self.ctrl.write_register(target_index, [0])
 
     def setHomingLevel(self, node_id: int, value: int) -> bool:
         """
@@ -133,6 +119,40 @@ class BeeS:
         print(f"Setting Homing Dir for ID {node_id} to {value} (cmd_homing_dir: {current_val:08X} -> {new_val:08X})")
         return self.ctrl.write_register(cmd_homing_dir_index, [new_val])
 
+    def setHomingMode(self, node_id: int) -> bool:
+        """
+        Sets the homing mode for a specific node ID by setting its cmd_opmode to OPMODE_HOMING (40).
+        """
+        if node_id < 0 or node_id > 31:
+            print(f"Error: node_id {node_id} out of range (0-31).")
+            return False
+            
+        base_opmode_index = 42  # cmd_opmode0
+        target_index = base_opmode_index + node_id
+        
+        OPMODE_HOMING = 40
+        
+        print(f"Setting Homing Mode for ID {node_id} (cmd_opmode at index {target_index} -> {OPMODE_HOMING})")
+        return self.ctrl.write_register(target_index, [OPMODE_HOMING])
+
+    def getHomingMode(self, node_id: int) -> int:
+        """
+        Gets the homing mode for a specific node ID by reading its cmd_opmode.
+        """
+        if node_id < 0 or node_id > 31:
+            print(f"Error: node_id {node_id} out of range (0-31).")
+            return None
+            
+        base_opmode_index = 42  # cmd_opmode0
+        target_index = base_opmode_index + node_id
+        
+        data = self.ctrl.read_cmd_register(target_index, count=1)
+        if data:
+            return data[0]
+        else:
+            print(f"Error: Could not read homing mode for ID {node_id}")
+            return None
+
     def getHomingDir(self, node_id: int) -> int:
         """
         Gets the homing direction for a specific node ID by reading the cmd_homing_dir register (index 2).
@@ -161,7 +181,7 @@ class BeeS:
             print(f"Error: node_id {node_id} out of range (0-31).")
             return False
             
-        base_ac_index = 74  # cmd_ac0
+        base_ac_index = 138  # cmd_ac0
         target_index = base_ac_index + node_id
         
         print(f"Setting Acceleration Time for ID {node_id} to {value} at index {target_index}")
@@ -175,7 +195,7 @@ class BeeS:
             print(f"Error: node_id {node_id} out of range (0-31).")
             return None
             
-        base_ac_index = 74  # cmd_ac0
+        base_ac_index = 138  # cmd_ac0
         target_index = base_ac_index + node_id
         
         data = self.ctrl.read_cmd_register(target_index, count=1)
@@ -232,6 +252,22 @@ class BeeS:
         cmd_state_index = 3
         print(f"Setting global state to Manual ID (9) at cmd_state index {cmd_state_index}")
         return self.ctrl.write_register(cmd_state_index, [9])
+
+    def setStateHoming(self) -> bool:
+        """
+        Sets the global command state (cmd_state) to Homing (value 10).
+        """
+        cmd_state_index = 3
+        print(f"Setting global state to Homing (10) at cmd_state index {cmd_state_index}")
+        return self.ctrl.write_register(cmd_state_index, [10])
+
+    def setStateTune(self) -> bool:
+        """
+        Sets the global command state (cmd_state) to Tune (value 11).
+        """
+        cmd_state_index = 3
+        print(f"Setting global state to Tune (11) at cmd_state index {cmd_state_index}")
+        return self.ctrl.write_register(cmd_state_index, [11])
 
     def getState(self) -> int:
         """
@@ -365,6 +401,28 @@ class BeeS:
         # Return True if the bit is 1, False otherwise
         return bool((current_val >> node_id) & 0x1)
 
+    def getReady(self, node_id: int) -> bool:
+        """
+        Gets the current ready status for a specific node ID.
+        Reads the st_ready register (index 1) and checks the corresponding bit.
+        """
+        if node_id < 0 or node_id > 31:
+            print(f"Error: node_id {node_id} out of range (0-31).")
+            return False
+            
+        st_ready_index = 1
+        
+        # Read the st_ready register from the status buffer
+        data = self.ctrl.read_register(st_ready_index, count=1)
+        
+        if not data:
+            print(f"Error: Could not read st_ready register for getReady.")
+            return False
+            
+        current_val = data[0]
+        # Return True if the bit is 1, False otherwise
+        return bool((current_val >> node_id) & 0x1)
+
     def setTargetVelocity(self, node_id: int, velocity: int) -> bool:
         """
         Sets the target velocity for a specific node ID.
@@ -374,7 +432,7 @@ class BeeS:
             print(f"Error: node_id {node_id} out of range (0-31).")
             return False
             
-        base_tv_index = 42  # cmd_tv0
+        base_tv_index = 106  # cmd_tv0
         target_index = base_tv_index + node_id
         
         print(f"Setting Target Velocity for ID {node_id} to {velocity} at index {target_index}")
@@ -388,7 +446,7 @@ class BeeS:
             print(f"Error: node_id {node_id} out of range (0-31).")
             return None
             
-        base_tv_index = 42  # cmd_tv0
+        base_tv_index = 106  # cmd_tv0
         target_index = base_tv_index + node_id
         
         data = self.ctrl.read_cmd_register(target_index, count=1)
@@ -407,7 +465,7 @@ class BeeS:
             print(f"Error: node_id {node_id} out of range (0-31).")
             return False
             
-        base_tp_index = 10  # cmd_tp0
+        base_tp_index = 74  # cmd_tp0
         target_index = base_tp_index + node_id
         
         print(f"Setting Target Position for ID {node_id} to {position} at index {target_index}")
@@ -427,7 +485,7 @@ class BeeS:
             print(f"Error: Invalid positions length {count} for start_id {start_id}.")
             return False
             
-        base_tp_index = 10  # cmd_tp0
+        base_tp_index = 74  # cmd_tp0
         target_index = base_tp_index + start_id
         
         # print(f"Setting {count} Target Positions starting at index {target_index}")
@@ -441,7 +499,7 @@ class BeeS:
             print(f"Error: node_id {node_id} out of range (0-31).")
             return None
             
-        base_tp_index = 10  # cmd_tp0
+        base_tp_index = 74  # cmd_tp0
         target_index = base_tp_index + node_id
         
         data = self.ctrl.read_cmd_register(target_index, count=1)
@@ -507,3 +565,25 @@ class BeeS:
         Gets the actual positions for multiple node IDs continuously.
         """
         return self.getActualPositions(count, start_id)
+
+    def getPowerOut(self, count: int = 32, start_id: int = 0) -> list:
+        """
+        Gets the power out (pout) values for multiple node IDs continuously.
+        The power out values are stored in the ST buffer starting at st_pout0 (index 169).
+        """
+        if start_id < 0 or start_id > 31:
+            print(f"Error: start_id {start_id} out of range (0-31).")
+            return []
+        if count < 1 or (start_id + count) > 32:
+            print(f"Error: Invalid count {count} for start_id {start_id}.")
+            return []
+            
+        base_pout_index = 169  # st_pout0
+        target_index = base_pout_index + start_id
+        
+        data = self.ctrl.read_register(target_index, count=count)
+        if data:
+            return data
+        else:
+            print(f"Error: Could not read power out values from ID {start_id}")
+            return []

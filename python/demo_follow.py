@@ -2,7 +2,7 @@ from libBeeS import BeeS
 import time
 import numpy as np
 
-positions = np.loadtxt("positions.csv", delimiter=",", dtype=int)
+positions = np.loadtxt("positions.csv", delimiter=",").astype(int)
 offset = positions.tolist()
 
 m = BeeS()

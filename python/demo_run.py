@@ -4,7 +4,9 @@ m = BeeS()
 # time.sleep(1)
 for axis in range(16):
     m.setPowerOn(axis)
+for axis in range(16):
     m.setAccTime(axis, 200) 
+for axis in range(16):
     m.setTargetVelocity(axis, 2000)
     # m.setHomingLevel(axis, 0)
 time.sleep(1)
@@ -15,7 +17,7 @@ time.sleep(3)
 # read positions from positions.csv
 # use numpy to load positions
 import numpy as np
-positions = np.loadtxt("positions.csv", delimiter=",", dtype=int)
+positions = np.loadtxt("positions.csv", delimiter=",").astype(int)
 print(positions)
 offset = positions.tolist()
 m.setTps(offset)
@@ -44,6 +46,7 @@ for loop in range(3):
 # m.setStateInit()
 time.sleep(1)
 m.setPowerOff(0)
+time.sleep(1)
 m.setStateInit()
 time.sleep(1)
 m.setStateRun()

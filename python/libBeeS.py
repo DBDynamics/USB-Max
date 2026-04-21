@@ -566,6 +566,34 @@ class BeeS:
         """
         return self.getActualPositions(count, start_id)
 
+    def setKPP(self, kpp_value: int) -> bool:
+        """
+        Sets the proportional gain (cmd_kpp) at index 6.
+        """
+        cmd_kpp_index = 6
+        return self.ctrl.write_register(cmd_kpp_index, [kpp_value])
+
+    def setKPI(self, kpi_value: int) -> bool:
+        """
+        Sets the integral gain (cmd_kpi) at index 7.
+        """
+        cmd_kpi_index = 7
+        return self.ctrl.write_register(cmd_kpi_index, [kpi_value])
+
+    def setKPD(self, kpd_value: int) -> bool:
+        """
+        Sets the derivative gain (cmd_kpd) at index 8.
+        """
+        cmd_kpd_index = 8
+        return self.ctrl.write_register(cmd_kpd_index, [kpd_value])
+
+    def setKFF(self, kff_value: int) -> bool:
+        """
+        Sets the feed-forward gain (cmd_kff) at index 9.
+        """
+        cmd_kff_index = 9
+        return self.ctrl.write_register(cmd_kff_index, [kff_value])
+
     def getPowerOut(self, count: int = 32, start_id: int = 0) -> list:
         """
         Gets the power out (pout) values for multiple node IDs continuously.
